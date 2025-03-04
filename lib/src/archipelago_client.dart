@@ -50,8 +50,7 @@ class ArchipelagoClient {
   //TODO: Add disconnect
 
   static Future<ArchipelagoClient> connect({
-    required String host,
-    required int port,
+    required ArchipelagoConnector connector,
     required String name,
     required String uuid,
     ArchipelagoDataStorage? storage,
@@ -62,7 +61,6 @@ class ArchipelagoClient {
     bool receiveOwnWorld = false,
     bool receiveStartingInventory = false,
     bool receiveSlotData = false,
-    ArchipelagoConnector? connector,
   }) async {
     final clientSettings = ArchipelagoClientSettings(
       name: name,
@@ -83,14 +81,8 @@ class ArchipelagoClient {
       store = storage;
     }
 
-    ArchipelagoConnector conn;
-    if (connector == null) {
-      conn = ArchipelagoConnector(host, port);
-    } else {
-      conn = connector;
-    }
-    await conn.ready;
-    return await ArchipelagoClient._handshake(conn, clientSettings, store);
+    await connector.connect();
+    return await ArchipelagoClient._handshake(connector, clientSettings, store);
   }
 
   static Future<ArchipelagoClient> _handshake(
@@ -102,6 +94,7 @@ class ArchipelagoClient {
     final _MessageQueue<ServerMessage> handshakeQueue = _MessageQueue();
     bool doQueue = true;
 
+    //TODO: handle this better
     connector.stream.listen((event) {
       if (doQueue) {
         handshakeQueue.addMessage(event);

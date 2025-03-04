@@ -11,32 +11,52 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 /// Can send and receive lists of JSON objects.
 
 interface class ArchipelagoConnector {
-  final WebSocketChannel _channel;
-  Future<void> get ready => _channel.ready;
-  final StreamSink _sink;
-  final Stream<ServerMessage> stream;
+  WebSocketChannel? _channel;
+  final StreamController<ServerMessage> _stream = StreamController();
+  Stream<ServerMessage> get stream => _stream.stream;
+  bool _connected = false;
+  bool get connected => _connected;
+  final String host;
+  final int port;
 
-  ArchipelagoConnector._(this._channel, this._sink, this.stream);
-
-  factory ArchipelagoConnector(String host, int port) {
-    final channel = WebSocketChannel.connect(
-      Uri(host: host, port: port, scheme: 'ws'),
-    );
-    final stream = channel.stream
-        .map((event) => jsonDecode(event) as List<dynamic>)
-        .expand((x) => x)
-        .map((x) => ServerMessage.fromJson(x));
-    final StreamSink sink = channel.sink;
-    return ArchipelagoConnector._(channel, sink, stream);
-  }
+  ArchipelagoConnector(this.host, this.port);
 
   void send(ClientMessage message) {
     sendMultiple([message]);
   }
 
   void sendMultiple(List<ClientMessage> messages) {
-    _sink.add(jsonEncode(messages));
+    _channel?.sink.add(jsonEncode(messages));
   }
 
-  //TODO: Add disconnect
+  Future<void> connect() async {
+    try {
+      _channel = WebSocketChannel.connect(
+        Uri(host: host, port: port, scheme: 'ws'),
+      );
+      await _channel!.ready;
+    } catch (e) {
+      _channel = WebSocketChannel.connect(
+        Uri(host: host, port: port, scheme: 'wss'),
+      );
+      await _channel!.ready;
+    }
+    _connected = true;
+    _stream
+        .addStream(
+          _channel!.stream
+              .map((event) => jsonDecode(event) as List<dynamic>)
+              .expand((x) => x)
+              .map((x) => ServerMessage.fromJson(x)),
+        )
+        .then((_) {
+          _channel = null;
+          _connected = false;
+        });
+  }
+
+  Future<void> disconnect() {
+    //TODO: Add disconnect
+    throw UnimplementedError();
+  }
 }
