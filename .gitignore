@@ -2,7 +2,6 @@
 # Created by `dart pub`
 .dart_tool/
 
-*.g.dart
 *.mocks.dart
 
 pubspec.lock
