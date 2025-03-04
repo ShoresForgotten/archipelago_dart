@@ -6,11 +6,10 @@ import 'package:mockito/mockito.dart';
 
 import 'package:stream_channel/stream_channel.dart';
 
-import 'package:archipelabutt/archipelago/archipelago.dart';
-import 'package:archipelabutt/archipelago/src/client_to_server.dart' as client;
-import 'package:archipelabutt/archipelago/src/server_to_client.dart' as server;
-import 'package:archipelabutt/archipelago/src/protocol_types.dart';
-import 'package:uuid/uuid.dart';
+import 'package:archipelago/archipelago.dart';
+import 'package:archipelago/src/client_to_server.dart' as client;
+import 'package:archipelago/src/server_to_client.dart' as server;
+import 'package:archipelago/src/protocol_types.dart';
 
 @GenerateNiceMocks([
   MockSpec<StreamChannel>(),

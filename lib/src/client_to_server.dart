@@ -28,10 +28,10 @@ class ConnectMessage extends ClientMessage {
   final String uuid;
   final NetworkVersion version;
   //TODO: make this work without analysis complaining
-  final _ItemsHandlingFlags? _itemsHandling;
-  bool? get receiveOtherWorlds => _itemsHandling?.otherWorlds;
-  bool? get receiveOwnWorld => _itemsHandling?.ownWorld;
-  bool? get receiveStartingInventory => _itemsHandling?.startingInventory;
+  final _ItemsHandlingFlags? itemsHandling;
+  bool? get receiveOtherWorlds => itemsHandling?.otherWorlds;
+  bool? get receiveOwnWorld => itemsHandling?.ownWorld;
+  bool? get receiveStartingInventory => itemsHandling?.startingInventory;
   final List<String> tags;
   final bool slotData;
 
@@ -47,7 +47,7 @@ class ConnectMessage extends ClientMessage {
     List<String> tags,
     this.slotData,
   ) : tags = List.unmodifiable(tags),
-      _itemsHandling = _ItemsHandlingFlags(
+      itemsHandling = _ItemsHandlingFlags(
         receiveOtherWorld,
         receiveOwnWorld,
         receiveStartingInventory,
@@ -59,7 +59,7 @@ class ConnectMessage extends ClientMessage {
     this.name,
     this.uuid,
     this.version,
-    this._itemsHandling,
+    this.itemsHandling,
     this.tags,
     this.slotData,
   );
