@@ -39,6 +39,9 @@ class ArchipelagoClient {
   bool get receiveOwnWorld => _clientSettings.receiveOwnWorld;
   bool get receiveStartingInventory => _clientSettings.receiveStartingInventory;
 
+  List<Player> get players =>
+      _roomInfo.players.map((e) => Player(e.name, e.slot)).toList();
+
   ArchipelagoClient._(
     this._connector,
     this._clientSettings,
