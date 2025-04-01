@@ -1,3 +1,4 @@
+/// The concrete connection controller implementation.
 library;
 
 import 'dart:async';
@@ -13,14 +14,16 @@ import 'server_to_client.dart';
 import 'consts.dart';
 import 'user_types.dart';
 
+// TODO: Document more
 /// Controller class for an Archipelago connection.
-/// Encapsulates all the state required for an Archipelago connection.
 class ArchipelagoClient {
   final ArchipelagoConnector _connector;
   final ArchipelagoClientSettings _clientSettings;
   final ArchipelagoDataStorage _storage;
   final ArchipelagoRoomInfo _roomInfo;
   final StreamController<ServerMessage> _streamController;
+
+  /// A stream of messages from an archipelago server.
   Stream<ArchipelagoEvent> get stream =>
       _streamController.stream
           .map((e) => _convert(e))
@@ -38,6 +41,8 @@ class ArchipelagoClient {
   bool get receiveOtherWorld => _clientSettings.receiveOtherWorlds;
   bool get receiveOwnWorld => _clientSettings.receiveOwnWorld;
   bool get receiveStartingInventory => _clientSettings.receiveStartingInventory;
+
+  bool get connected => _connector.connected;
 
   List<Player> get players =>
       _roomInfo.players.map((e) => Player(e.name, e.slot)).toList();
@@ -156,25 +161,25 @@ class ArchipelagoClient {
       ),
     );
 
-    final ServerMessage connected = await handshakeQueue.getMessage();
+    final ServerMessage connectedMessage = await handshakeQueue.getMessage();
     // Stop sending messages to the queue, we've either succeeded or failed by now.
     doQueue = false;
 
-    if (connected is ConnectionRefusedMessage) {
-      throw ArchipelagoConnectionRefused(connected.errors);
-    } else if (connected is! ConnectedMessage) {
-      throw HandshakeException('Connected', connected);
+    if (connectedMessage is ConnectionRefusedMessage) {
+      throw ArchipelagoConnectionRefused(connectedMessage.errors);
+    } else if (connectedMessage is! ConnectedMessage) {
+      throw HandshakeException('Connected', connectedMessage);
     }
 
     final ArchipelagoRoomInfo roomInfo = ArchipelagoRoomInfo(
-      connected.players,
-      connected.team,
-      connected.slot,
-      connected.slotData,
-      connected.slotInfo,
-      connected.hintPoints,
-      connected.checkedLocations,
-      connected.missingLocations,
+      connectedMessage.players,
+      connectedMessage.team,
+      connectedMessage.slot,
+      connectedMessage.slotData,
+      connectedMessage.slotInfo,
+      connectedMessage.hintPoints,
+      connectedMessage.checkedLocations,
+      connectedMessage.missingLocations,
       roomInfoMessage.tags,
       roomInfoMessage.password,
       roomInfoMessage.permissions,

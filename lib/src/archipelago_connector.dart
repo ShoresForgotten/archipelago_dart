@@ -21,6 +21,7 @@ interface class ArchipelagoConnector {
 
   ArchipelagoConnector(this.host, this.port);
 
+  // TODO: Maybe change this so it uses a more user-facing type
   void send(ClientMessage message) {
     sendMultiple([message]);
   }

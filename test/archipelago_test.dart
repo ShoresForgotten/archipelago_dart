@@ -24,7 +24,7 @@ void main() {
   group('Client API', () {
     test('Handshake requesting no DataPackages', () async {
       final MockArchipelagoConnector mockConnector = MockArchipelagoConnector();
-      final NetworkVersion networkVersion = NetworkVersion(0, 5, 1);
+      final NetworkVersion networkVersion = NetworkVersion(0, 6, 0);
 
       when(mockConnector.stream).thenAnswer(
         (_) => Stream.fromIterable([
@@ -52,11 +52,11 @@ void main() {
           ),
         ]),
       );
-      final uuid = Uuid().v4();
+      when(mockConnector.host).thenReturn('example.org');
+      when(mockConnector.port).thenReturn(38281);
+      final uuid = 'test';
 
       final archipelagoClient = await ArchipelagoClient.connect(
-        host: 'example.org',
-        port: 38281,
         name: 'Bob Hamelin',
         uuid: uuid,
         game: 'Spacewar',
@@ -113,11 +113,11 @@ void main() {
           ),
         ]),
       );
-      final uuid = Uuid().v4();
+      when(mockConnector.host).thenReturn('example.org');
+      when(mockConnector.port).thenReturn(38281);
+      final uuid = 'test';
 
       final archipelagoClient = await ArchipelagoClient.connect(
-        host: 'example.org',
-        port: 38281,
         name: 'Bob Hamelin',
         uuid: uuid,
         game: 'Spacewar',
