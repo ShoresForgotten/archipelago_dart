@@ -14,7 +14,8 @@ import 'package:archipelago/src/protocol_types.dart';
 @GenerateNiceMocks([
   MockSpec<StreamChannel>(),
   MockSpec<StreamSink>(),
-  MockSpec<ArchipelagoConnector>(),
+  MockSpec<ArchipelagoProtocolConnector>(),
+  MockSpec<ArchipelagoProtocolConnection>(),
 ])
 import 'archipelago_test.mocks.dart';
 
@@ -22,124 +23,144 @@ typedef JSON = Map<String, dynamic>;
 
 void main() {
   group('Client API', () {
-    test('Handshake requesting no DataPackages', () async {
-      final MockArchipelagoConnector mockConnector = MockArchipelagoConnector();
-      final NetworkVersion networkVersion = NetworkVersion(0, 6, 0);
+    group('Connecting to server', () {
+      test('Handshake requesting no DataPackages', () async {
+        final MockArchipelagoProtocolConnector mockConnector =
+            MockArchipelagoProtocolConnector();
+        final MockArchipelagoProtocolConnection mockConnection =
+            MockArchipelagoProtocolConnection();
+        final NetworkVersion networkVersion = NetworkVersion(0, 6, 0);
 
-      when(mockConnector.stream).thenAnswer(
-        (_) => Stream.fromIterable([
-          server.RoomInfoMessage(
+        when(
+          mockConnector.connect(),
+        ).thenAnswer((_) => Future.value(mockConnection));
+
+        when(mockConnection.stream).thenAnswer(
+          (_) => Stream.fromIterable([
+            server.RoomInfoMessage(
+              networkVersion,
+              networkVersion,
+              [],
+              false,
+              PermissionsDict(
+                Permission.auto,
+                Permission.auto,
+                Permission.auto,
+              ),
+              5,
+              1,
+              [],
+              {},
+              'potato',
+              DateTime.now(),
+            ),
+            server.ConnectedMessage(
+              0,
+              1,
+              [NetworkPlayer(0, 1, 'Bob Hamelin', 'Bob')],
+              [],
+              [],
+              {1: NetworkSlot('Bob', 'Spacewar', SlotType(true, false), [])},
+              0,
+            ),
+          ]),
+        );
+        final uuid = 'test';
+
+        final archipelagoClient = await ArchipelagoClient.connectWithConnector(
+          name: 'Bob Hamelin',
+          uuid: uuid,
+          game: 'Spacewar',
+          receiveOtherWorlds: true,
+          connector: mockConnector,
+        );
+
+        expect(
+          verify(mockConnection.send(captureAny)).captured.single,
+          client.ConnectMessage(
+            null,
+            'Spacewar',
+            'Bob Hamelin',
+            uuid,
             networkVersion,
-            networkVersion,
+            true,
+            false,
+            false,
             [],
             false,
-            PermissionsDict(Permission.auto, Permission.auto, Permission.auto),
-            5,
-            1,
-            [],
-            {},
-            'potato',
-            DateTime.now(),
           ),
-          server.ConnectedMessage(
-            0,
-            1,
-            [NetworkPlayer(0, 1, 'Bob Hamelin', 'Bob')],
-            [],
-            [],
-            {1: NetworkSlot('Bob', 'Spacewar', SlotType(true, false), [])},
-            0,
-          ),
-        ]),
-      );
-      when(mockConnector.host).thenReturn('example.org');
-      when(mockConnector.port).thenReturn(38281);
-      final uuid = 'test';
+        );
+      });
+      test('Handshake requesting a DataPackage', () async {
+        final MockArchipelagoProtocolConnector mockConnector =
+            MockArchipelagoProtocolConnector();
+        final MockArchipelagoProtocolConnection mockConnection =
+            MockArchipelagoProtocolConnection();
+        final NetworkVersion networkVersion = NetworkVersion(0, 6, 0);
 
-      final archipelagoClient = await ArchipelagoClient.connect(
-        name: 'Bob Hamelin',
-        uuid: uuid,
-        game: 'Spacewar',
-        receiveOtherWorlds: true,
-        connector: mockConnector,
-      );
+        when(
+          mockConnector.connect(),
+        ).thenAnswer((_) => Future.value(mockConnection));
 
-      expect(
-        verify(mockConnector.send(captureAny)).captured.single,
-        client.ConnectMessage(
-          null,
-          'Spacewar',
-          'Bob Hamelin',
-          uuid,
-          networkVersion,
-          true,
-          false,
-          false,
-          [],
-          false,
-        ),
-      );
-    });
-    test('Handshake requesting a DataPackage', () async {
-      final MockArchipelagoConnector mockConnector = MockArchipelagoConnector();
-      final NetworkVersion networkVersion = NetworkVersion(0, 5, 1);
+        when(mockConnection.stream).thenAnswer(
+          (_) => Stream.fromIterable([
+            server.RoomInfoMessage(
+              networkVersion,
+              networkVersion,
+              [],
+              false,
+              PermissionsDict(
+                Permission.auto,
+                Permission.auto,
+                Permission.auto,
+              ),
+              5,
+              1,
+              ['Spacewar'],
+              {'Spacewar': 'loremipsum'},
+              'potato',
+              DateTime.now(),
+            ),
+            server.DataPackageMessage(
+              DataPackageContents({'Spacewar': GameData({}, {}, 'loremipsum')}),
+            ),
+            server.ConnectedMessage(
+              0,
+              1,
+              [NetworkPlayer(0, 1, 'Bob Hamelin', 'Bob')],
+              [],
+              [],
+              {1: NetworkSlot('Bob', 'Spacewar', SlotType(true, false), [])},
+              0,
+            ),
+          ]),
+        );
+        final uuid = 'test';
 
-      when(mockConnector.stream).thenAnswer(
-        (_) => Stream.fromIterable([
-          server.RoomInfoMessage(
+        final archipelagoClient = await ArchipelagoClient.connectWithConnector(
+          name: 'Bob Hamelin',
+          uuid: uuid,
+          game: 'Spacewar',
+          receiveOtherWorlds: true,
+          connector: mockConnector,
+        );
+
+        expect(verify(mockConnection.send(captureAny)).captured, [
+          client.GetDataPackageMessage(['Spacewar']),
+          client.ConnectMessage(
+            null,
+            'Spacewar',
+            'Bob Hamelin',
+            uuid,
             networkVersion,
-            networkVersion,
+            true,
+            false,
+            false,
             [],
             false,
-            PermissionsDict(Permission.auto, Permission.auto, Permission.auto),
-            5,
-            1,
-            ['Spacewar'],
-            {'Spacewar': 'loremipsum'},
-            'potato',
-            DateTime.now(),
           ),
-          server.DataPackageMessage(
-            DataPackageContents({'Spacewar': GameData({}, {}, 'loremipsum')}),
-          ),
-          server.ConnectedMessage(
-            0,
-            1,
-            [NetworkPlayer(0, 1, 'Bob Hamelin', 'Bob')],
-            [],
-            [],
-            {1: NetworkSlot('Bob', 'Spacewar', SlotType(true, false), [])},
-            0,
-          ),
-        ]),
-      );
-      when(mockConnector.host).thenReturn('example.org');
-      when(mockConnector.port).thenReturn(38281);
-      final uuid = 'test';
-
-      final archipelagoClient = await ArchipelagoClient.connect(
-        name: 'Bob Hamelin',
-        uuid: uuid,
-        game: 'Spacewar',
-        receiveOtherWorlds: true,
-        connector: mockConnector,
-      );
-
-      expect(verify(mockConnector.send(captureAny)).captured, [
-        client.GetDataPackageMessage(['Spacewar']),
-        client.ConnectMessage(
-          null,
-          'Spacewar',
-          'Bob Hamelin',
-          uuid,
-          networkVersion,
-          true,
-          false,
-          false,
-          [],
-          false,
-        ),
-      ]);
+        ]);
+      });
     });
   });
   group('Miscellaneous types', () {

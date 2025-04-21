@@ -5,3 +5,5 @@
 *.mocks.dart
 
 pubspec.lock
+
+doc/api/

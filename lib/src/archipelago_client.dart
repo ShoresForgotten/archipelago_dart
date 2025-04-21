@@ -17,7 +17,7 @@ import 'user_types.dart';
 // TODO: Document more
 /// Controller class for an Archipelago connection.
 class ArchipelagoClient {
-  final ArchipelagoConnector _connector;
+  final ArchipelagoProtocolConnection _connection;
   final ArchipelagoClientSettings _clientSettings;
   final ArchipelagoDataStorage _storage;
   final ArchipelagoRoomInfo _roomInfo;
@@ -42,23 +42,21 @@ class ArchipelagoClient {
   bool get receiveOwnWorld => _clientSettings.receiveOwnWorld;
   bool get receiveStartingInventory => _clientSettings.receiveStartingInventory;
 
-  bool get connected => _connector.connected;
+  bool get connected => _connection.connected;
 
   List<Player> get players =>
       _roomInfo.players.map((e) => Player(e.name, e.slot)).toList();
 
   ArchipelagoClient._(
-    this._connector,
+    this._connection,
     this._clientSettings,
     this._roomInfo,
     this._storage,
     this._streamController,
   );
 
-  //TODO: Add disconnect
-
-  static Future<ArchipelagoClient> connect({
-    required ArchipelagoConnector connector,
+  static Future<ArchipelagoClient> connectWithConnector({
+    required ArchipelagoProtocolConnector connector,
     required String name,
     required String uuid,
     ArchipelagoDataStorage? storage,
@@ -89,12 +87,62 @@ class ArchipelagoClient {
       store = storage;
     }
 
-    await connector.connect();
-    return await ArchipelagoClient._handshake(connector, clientSettings, store);
+    ArchipelagoProtocolConnection connection = await connector.connect();
+    return await ArchipelagoClient._handshake(
+      connection,
+      clientSettings,
+      store,
+    );
+  }
+
+  static Future<ArchipelagoClient> connect({
+    required String host,
+    required int port,
+    required String name,
+    required String uuid,
+    ArchipelagoDataStorage? storage,
+    List<String> tags = const [],
+    String? game,
+    String? password,
+    bool receiveOtherWorlds = false,
+    bool receiveOwnWorld = false,
+    bool receiveStartingInventory = false,
+    bool receiveSlotData = false,
+  }) async {
+    final clientSettings = ArchipelagoClientSettings(
+      name: name,
+      uuid: uuid,
+      game: game,
+      password: password,
+      tags: tags,
+      receiveOtherWorlds: receiveOtherWorlds,
+      receiveOwnWorld: receiveOwnWorld,
+      receiveStartingInventory: receiveStartingInventory,
+      receiveSlotData: receiveSlotData,
+    );
+
+    ArchipelagoDataStorage store;
+    if (storage == null) {
+      store = ArchipelagoDataStorage(<String, ArchipelagoGame>{});
+    } else {
+      store = storage;
+    }
+
+    ArchipelagoProtocolConnector connector = ArchipelagoProtocolConnector(
+      host,
+      port,
+    );
+
+    ArchipelagoProtocolConnection connection = await connector.connect();
+    return await ArchipelagoClient._handshake(
+      connection,
+      clientSettings,
+      store,
+    );
   }
 
   static Future<ArchipelagoClient> _handshake(
-    ArchipelagoConnector connector,
+    ArchipelagoProtocolConnection connection,
     ArchipelagoClientSettings clientSettings,
     ArchipelagoDataStorage storage,
   ) async {
@@ -103,7 +151,7 @@ class ArchipelagoClient {
     bool doQueue = true;
 
     //TODO: handle this better
-    connector.stream.listen((event) {
+    connection.stream.listen((event) {
       if (doQueue) {
         handshakeQueue.addMessage(event);
       }
@@ -128,7 +176,7 @@ class ArchipelagoClient {
             .map((e) => e.key)
             .toList();
     if (gamesToGet.isNotEmpty) {
-      connector.send(GetDataPackageMessage(gamesToGet));
+      connection.send(GetDataPackageMessage(gamesToGet));
       final ServerMessage dataPackage = await handshakeQueue.getMessage();
       if (dataPackage is! DataPackageMessage) {
         throw HandshakeException('DataPackage', dataPackage);
@@ -146,7 +194,7 @@ class ArchipelagoClient {
       storage.save();
     }
 
-    connector.send(
+    connection.send(
       ConnectMessage(
         roomInfoMessage.password ? clientSettings.password : null,
         clientSettings.game,
@@ -191,7 +239,7 @@ class ArchipelagoClient {
       roomInfoMessage.time,
     );
     return ArchipelagoClient._(
-      connector,
+      connection,
       clientSettings,
       roomInfo,
       storage,
@@ -422,7 +470,7 @@ class ArchipelagoClient {
 
   /// Send a message to the server.
   void _send(ClientMessage message) {
-    _connector.send(message);
+    _connection.send(message);
   }
 
   DisplayMessage _jsonMessageToDisplayMessage(PrintJSONMessage message) {
