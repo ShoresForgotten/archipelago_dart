@@ -2,7 +2,7 @@ library;
 
 import 'package:collection/collection.dart';
 
-import 'protocol_types.dart';
+import 'protocol_types/general_types.dart';
 
 class ArchipelagoRoomInfo {
   // In Connected

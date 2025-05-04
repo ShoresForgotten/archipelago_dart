@@ -1,8 +1,8 @@
 /// Types needed for using the library.
 library;
 
-import 'protocol_types.dart';
-import 'server_to_client.dart';
+import 'protocol_types/general_types.dart';
+import 'protocol_types/server_to_client.dart';
 
 /// Parent class for events sent by the server.
 ///

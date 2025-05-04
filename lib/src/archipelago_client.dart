@@ -8,9 +8,9 @@ import 'archipelago_client_settings.dart';
 import 'archipelago_connector.dart';
 import 'archipelago_room_info.dart';
 import 'data_storage.dart';
-import 'protocol_types.dart';
-import 'client_to_server.dart';
-import 'server_to_client.dart';
+import 'protocol_types/general_types.dart';
+import 'protocol_types/client_to_server.dart';
+import 'protocol_types/server_to_client.dart';
 import 'consts.dart';
 import 'user_types.dart';
 

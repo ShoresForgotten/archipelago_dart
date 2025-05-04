@@ -1,6 +1,6 @@
 library;
 
-import 'protocol_types.dart';
+import 'protocol_types/general_types.dart';
 
 /// Globally available utilities for Archipelago connections.
 abstract class ArchipelagoGlobal {

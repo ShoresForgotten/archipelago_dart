@@ -4,7 +4,7 @@ library;
 import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'protocol_types.g.dart';
+part 'general_types.g.dart';
 
 /// Information about a player in a session.
 @JsonSerializable()

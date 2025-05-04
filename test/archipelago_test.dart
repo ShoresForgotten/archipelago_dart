@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:archipelago/src/archipelago_connector.dart';
 import 'package:test/test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -7,9 +8,9 @@ import 'package:mockito/mockito.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 import 'package:archipelago/archipelago.dart';
-import 'package:archipelago/src/client_to_server.dart' as client;
-import 'package:archipelago/src/server_to_client.dart' as server;
-import 'package:archipelago/src/protocol_types.dart';
+import 'package:archipelago/src/protocol_types/client_to_server.dart' as client;
+import 'package:archipelago/src/protocol_types/server_to_client.dart' as server;
+import 'package:archipelago/src/protocol_types/general_types.dart';
 
 @GenerateNiceMocks([
   MockSpec<StreamChannel>(),

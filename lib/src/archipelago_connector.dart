@@ -3,8 +3,8 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
-import 'client_to_server.dart';
-import 'server_to_client.dart';
+import 'protocol_types/client_to_server.dart';
+import 'protocol_types/server_to_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// A factory for creating connections to Archipelago servers

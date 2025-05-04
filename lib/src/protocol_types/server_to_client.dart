@@ -3,7 +3,7 @@ library;
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'protocol_types.dart';
+import 'general_types.dart';
 
 part 'server_to_client.g.dart';
 
