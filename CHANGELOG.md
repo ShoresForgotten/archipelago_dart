@@ -7,3 +7,7 @@
 - Support Archipelago 0.6.0
 - Add connected property to ArchipelagoClient
 - Documentation on various types
+
+## 0.2.0
+
+- Connectors are now factories
