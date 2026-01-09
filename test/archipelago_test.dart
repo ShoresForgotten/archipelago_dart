@@ -11,6 +11,7 @@ import 'package:archipelago/archipelago.dart';
 import 'package:archipelago/src/protocol_types/client_to_server.dart' as client;
 import 'package:archipelago/src/protocol_types/server_to_client.dart' as server;
 import 'package:archipelago/src/protocol_types/general_types.dart';
+import 'package:archipelago/src/consts.dart';
 
 @GenerateNiceMocks([
   MockSpec<StreamChannel>(),
@@ -30,8 +31,8 @@ void main() {
             MockArchipelagoProtocolConnector();
         final MockArchipelagoProtocolConnection mockConnection =
             MockArchipelagoProtocolConnection();
-        final NetworkVersion networkVersion = NetworkVersion(0, 6, 0);
-
+        final NetworkVersion networkVersion =
+            ArchipelagoGlobal.supportedVersion;
         when(
           mockConnector.connect(),
         ).thenAnswer((_) => Future.value(mockConnection));
@@ -97,7 +98,8 @@ void main() {
             MockArchipelagoProtocolConnector();
         final MockArchipelagoProtocolConnection mockConnection =
             MockArchipelagoProtocolConnection();
-        final NetworkVersion networkVersion = NetworkVersion(0, 6, 0);
+        final NetworkVersion networkVersion =
+            ArchipelagoGlobal.supportedVersion;
 
         when(
           mockConnector.connect(),

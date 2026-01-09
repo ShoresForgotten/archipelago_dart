@@ -15,6 +15,7 @@ import 'consts.dart';
 import 'user_types.dart';
 
 // TODO: Document more
+// TODO: Make getting the user player object possible
 /// Controller class for an Archipelago connection.
 class ArchipelagoClient {
   final ArchipelagoProtocolConnection _connection;
@@ -43,6 +44,7 @@ class ArchipelagoClient {
   bool get receiveStartingInventory => _clientSettings.receiveStartingInventory;
 
   bool get connected => _connection.connected;
+  late final Player connectionPlayer;
 
   List<Player> get players =>
       _roomInfo.players.map((e) => Player(e.name, e.slot)).toList();
@@ -53,7 +55,13 @@ class ArchipelagoClient {
     this._roomInfo,
     this._storage,
     this._streamController,
-  );
+  ) {
+    final networkPlayer = _roomInfo.players.firstWhere(
+      (element) =>
+          element.team == _roomInfo.team && element.slot == _roomInfo.slot,
+    );
+    connectionPlayer = Player(networkPlayer.name, networkPlayer.slot);
+  }
 
   static Future<ArchipelagoClient> connectWithConnector({
     required ArchipelagoProtocolConnector connector,
