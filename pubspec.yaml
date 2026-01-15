@@ -1,6 +1,6 @@
 name: archipelago
 description: An Archipelago client library written in Dart
-version: 0.2.0
+version: 0.3.0
 
 environment:
   sdk: ^3.7.0
